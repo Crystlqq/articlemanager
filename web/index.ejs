@@ -14,11 +14,11 @@
               <div class="row">
             <span><%= index+1 %></span>
             <span><%= item.username %></span>
-            <span><%= item.title %></span>
+            <span><a href="/detail?id=<%=item.id%>"><%= item.title %></span>
             <span><%= item.time %></span>
             <span>
-            <a href="">编辑</a>
-            <a href="">删除</a>
+            <a href="/write/delete?id=<%=item.id%>&page=<%=data.curPage%>">编辑</a>
+            <a href="/article/delete?id=<%=item.id%>&page=<%=data.curPage%>">删除</a>
             </span>
         </div>
        <% }) %>    

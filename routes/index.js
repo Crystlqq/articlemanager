@@ -24,15 +24,17 @@ router.get('/',function(req,res,next){
             model.connect(function(db){
                 //sort() limit() skip()
                 db.collection('articles').find().sort({_id:-1}).limit(pageSize).skip((page-1)*pageSize).toArray(function(err,docs2){
-                    docs.map(function(ele,index){
+                    if(docs2.length==0){
+                        res.redirect('/?page='+((page-1) || 1))
+                    }else{ 
+                        docs2.map(function(ele,index){
                 ele['time'] = moment(ele.id).format('YYYY-MM-DD HH:mm:ss')
             })
             data.list = docs2
+        }         
             res.render('index',{username:username,data:data })
                 })
-            })
-            data.list = docs
-            
+            })  
         })
     })
 })
@@ -46,18 +48,53 @@ router.get('/login',function(req,res,next){
     res.render('login',{})
 })
 
-//渲染写文章界面
+//渲染写文章界面 /编辑文章页
 router.get('/write',function(req,res,next){
     var username = req.session.username ||''
-    res.render('write',{username:username})
+    var id = parseInt(req.query.id)
+    var page = req.query.page
+    var item = {
+        title:'',
+        content:''
+    }
+    if(id){   //编辑
+    model.connect(function(db){
+        db.collection('articles').findOne({id:id},function(err,docs){
+            if(err){
+                console.log('查询失败')
+            }else{
+                item = docs
+                item['page'] = page
+            }
+        })
+      })
+    }else{ //新增
+           res.render('write',{username:username,item:item})
+    }
+})
+//渲染详情页
+router.get('/detail',function(req,res,next){
+    var id = parseInt(req.query.id)
+    var username=req.session.username || ''
+    model.connect(function(db){
+        db.collection('articles').findOne({id:id},function(err,docs){
+            if(err){
+                console.log('查询失败',err)
+            }else{
+                var item = docs
+                item['time']=moment(item.id).format('YYYY-MM-DD HH:mm:ss')
+                res.render('detail',{item:item,username:username})
+            }
+        })
+    })
 })
 
-// app.use("/",express.static('web'))
-// app.get("/regist",(req,res)=>{
-//     console.log(req.query)
-//     //const kitty = new mydata({name:req.query.first,health:req.query.second})
-//     //kitty.save()
-//     res.send(req.query)
+
+
+
+
+
+module.exports = routers
 //     //ejs.renderFile(filename,data,options,function(err,str){
 //         //str
 //     //})
@@ -70,4 +107,3 @@ router.get('/write',function(req,res,next){
 
 
 
-module.exports = router
